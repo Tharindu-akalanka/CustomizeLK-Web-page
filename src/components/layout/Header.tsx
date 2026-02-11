@@ -19,7 +19,6 @@ import { Input } from "@/components/ui/input";
 export default function Header() {
     const [scrolled, setScrolled] = useState(false);
     const [mounted, setMounted] = useState(false);
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     useEffect(() => {
         setMounted(true);
@@ -41,7 +40,7 @@ export default function Header() {
                 {/* Mobile Menu & Logo */}
                 <div className="flex items-center gap-4">
                     <div className="md:hidden">
-                        <MobileMenu open={mobileMenuOpen} setOpen={setMobileMenuOpen} />
+                        <MobileMenu />
                     </div>
 
                     <Link href="/" className="flex items-center">
