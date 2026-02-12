@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   output: "export",
-  basePath: "/CustomizeLK-Web-page",
+  basePath: process.env.GITHUB_ACTIONS ? "/CustomizeLK-Web-page" : "",
   trailingSlash: true,
   images: {
     unoptimized: true,
