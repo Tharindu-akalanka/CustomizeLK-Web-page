@@ -4,7 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { useState } from "react";
+import { Plus, Check } from "lucide-react";
 import { useCartStore } from "@/store/useCartStore";
 
 interface ProductCardProps {
@@ -18,9 +19,12 @@ interface ProductCardProps {
 
 export default function ProductCard({ id, title, price, image, category, badge }: ProductCardProps) {
     const addItem = useCartStore((state) => state.addItem);
+    const [isAdded, setIsAdded] = useState(false);
 
     const handleAddToCart = (e: React.MouseEvent) => {
         e.preventDefault();
+        e.stopPropagation(); // Prevent Link navigation
+
         addItem({
             id,
             title,
@@ -29,6 +33,9 @@ export default function ProductCard({ id, title, price, image, category, badge }
             size: "US 9", // Default size for now
             quantity: 1,
         });
+
+        setIsAdded(true);
+        setTimeout(() => setIsAdded(false), 2000);
     };
 
     return (
@@ -56,18 +63,30 @@ export default function ProductCard({ id, title, price, image, category, badge }
                         alt={title}
                         fill
                         className="object-cover transition-transform duration-300 group-hover:scale-105"
-                        sizes="(max-width: 768px) 50vw, 33vw"
+                        sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     />
 
                     <div className="absolute bottom-0 w-full p-2 translate-y-full opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-                        <Button className="w-full" size="sm" onClick={handleAddToCart}>
-                            <Plus className="mr-2 h-4 w-4" /> Add to Cart
+                        <Button
+                            className={`w-full transition-colors duration-300 ${isAdded ? "bg-green-600 hover:bg-green-700 text-white" : ""}`}
+                            size="sm"
+                            onClick={handleAddToCart}
+                        >
+                            {isAdded ? (
+                                <>
+                                    <Check className="mr-2 h-4 w-4" /> Added to Cart
+                                </>
+                            ) : (
+                                <>
+                                    <Plus className="mr-2 h-4 w-4" /> Add to Cart
+                                </>
+                            )}
                         </Button>
                     </div>
                 </div>
                 <div className="space-y-1">
                     <p className="text-xs text-muted-foreground capitalize">{category}</p>
-                    <h3 className="font-medium text-sm leading-tight group-hover:text-primary transition-colors">{title}</h3>
+                    <h3 className="font-medium text-sm leading-tight group-hover:text-primary transition-colors line-clamp-2">{title}</h3>
                     <p className="font-bold text-sm">Rs. {price.toLocaleString()}</p>
                 </div>
             </motion.div>

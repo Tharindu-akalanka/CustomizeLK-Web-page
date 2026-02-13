@@ -2,17 +2,24 @@
 
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
 
 export default function Hero() {
     return (
         <section className="relative w-full h-[500px] md:h-[600px] bg-muted overflow-hidden flex items-center justify-center">
             {/* Background with placeholder or gradient */}
-            <div className="absolute inset-0 bg-gradient-to-r from-background/90 to-background/20 z-10" />
-            <div
-                className="absolute inset-0 bg-cover bg-center opacity-70 grayscale-[30%] hover:grayscale-0 transition-all duration-1000"
-                style={{ backgroundImage: 'url("/images/Pink Flowers Custom Sneakers Air Force 1 - Women\'s US 10_5_Men\'s US 9.jpg")' }}
-            />
+            <div className="absolute inset-0">
+                <div className="absolute inset-0 bg-gradient-to-r from-background/90 to-background/20 z-10" />
+                <Image
+                    src="/images/Pink Flowers Custom Sneakers Air Force 1 - Women's US 10_5_Men's US 9.jpg"
+                    alt="Custom Sneaker Design"
+                    fill
+                    priority
+                    className="object-cover opacity-70 grayscale-[30%] hover:grayscale-0 transition-all duration-1000"
+                    sizes="100vw"
+                />
+            </div>
 
             <div className="container relative z-20 px-4 text-center md:text-left">
                 <motion.div

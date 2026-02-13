@@ -43,7 +43,15 @@ export default function Header() {
                         <MobileMenu />
                     </div>
 
-                    <Link href="/" className="flex items-center">
+                    <Link href="/" className="flex items-center gap-2">
+                        <Image
+                            src="/pre logo.png"
+                            alt="CustomizeLK Brand Icon"
+                            width={50}
+                            height={50}
+                            className="h-10 md:h-12 w-auto object-contain"
+                            priority
+                        />
                         <Image
                             src="/logo.png"
                             alt="CustomizeLK Logo"
@@ -92,9 +100,7 @@ export default function Header() {
                         </DropdownMenuContent>
                     </DropdownMenu>
 
-                    <Link href="/shop?category=deals" className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors">
-                        Deals
-                    </Link>
+
                     <Link href="/customize" className="text-sm font-medium hover:text-primary transition-colors">
                         Customize
                     </Link>

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Shoe Customizer</title>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: sans-serif;
+            background: #f0f0f0;
+        }
+
+        #container {
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #ui-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        h2 {
+            margin: 0 0 10px 0;
+            font-size: 1.2rem;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+        }
+
+        button {
+            background: #000;
+            color: #fff;
+            border: none;
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #333;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.5rem;
+            color: #555;
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="container"></div>
+    <div id="loading" class="loading">Loading 3D Model...</div>
+
+    <div id="ui-panel">
+        <h2>Customizer</h2>
+
+        <button onclick="document.getElementById('file-input').click()">Upload Artwork</button>
+        <input type="file" id="file-input" accept="image/*">
+
+        <div class="control-group">
+            <label>Position X <span id="val-x">0</span></label>
+            <input type="range" id="pos-x" min="-10" max="10" step="0.1" value="0">
+        </div>
+
+        <div class="control-group">
+            <label>Position Y <span id="val-y">0</span></label>
+            <input type="range" id="pos-y" min="-10" max="10" step="0.1" value="0">
+        </div>
+
+        <div class="control-group">
+            <label>Position Z <span id="val-z">0</span></label>
+            <input type="range" id="pos-z" min="-10" max="10" step="0.1" value="0">
+        </div>
+
+        <div class="control-group">
+            <label>Scale <span id="val-s">1.0</span></label>
+            <input type="range" id="scale" min="0.1" max="3" step="0.1" value="1.0">
+        </div>
+
+        <div class="control-group">
+            <label>Rotation <span id="val-r">0</span></label>
+            <input type="range" id="rotation" min="0" max="360" step="1" value="0">
+        </div>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { DecalGeometry } from 'three/addons/geometries/DecalGeometry.js';
+
+        // --- Configuration ---
+        const MODEL_PATH = 'ASSET.gltf';
+
+        // --- Scene Setup ---
+        const container = document.getElementById('container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xf0f0f0);
+        scene.environment = new THREE.Color(0xf0f0f0);
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.set(0, 0, 5); // Closer start
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.shadowMap.enabled = true;
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
+        container.appendChild(renderer.domElement);
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+
+        // --- Lighting ---
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+        dirLight.position.set(5, 10, 7);
+        dirLight.castShadow = true;
+        scene.add(dirLight);
+
+        // --- Variables ---
+        let mesh;
+        let decalMesh;
+        let uploadedTexture = null;
+
+        // --- functions ---
+        function fitCameraToObject(camera, object, offset = 1.25) {
+            const boundingBox = new THREE.Box3();
+            boundingBox.setFromObject(object);
+            const center = boundingBox.getCenter(new THREE.Vector3());
+            const size = boundingBox.getSize(new THREE.Vector3());
+            const maxDim = Math.max(size.x, size.y, size.z);
+            const fov = camera.fov * (Math.PI / 180);
+            let cameraZ = Math.abs(maxDim / 4 * Math.tan(fov * 2));
+            cameraZ *= offset; // Zoom out a little so object fits in our view
+            camera.position.z = center.z + cameraZ;
+            const minZ = boundingBox.min.z;
+            const cameraToFarEdge = (minZ < 0) ? -minZ + cameraZ : cameraZ - minZ;
+            camera.far = cameraToFarEdge * 3;
+            camera.updateProjectionMatrix();
+            if (controls) {
+                controls.target = center;
+                controls.maxDistance = cameraToFarEdge * 2;
+                controls.saveState();
+            }
+        }
+
+        // --- Load Model ---
+        const loader = new GLTFLoader();
+        loader.load(MODEL_PATH, (gltf) => {
+            document.getElementById('loading').style.display = 'none';
+            const model = gltf.scene;
+
+            // Center model
+            const box = new THREE.Box3().setFromObject(model);
+            const center = box.getCenter(new THREE.Vector3());
+            model.position.sub(center);
+
+            scene.add(model);
+
+            // Auto-Find Best Mesh
+            model.traverse((child) => {
+                if (child.isMesh) {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                    if (!mesh || child.geometry.attributes.position.count > mesh.geometry.attributes.position.count) {
+                        mesh = child;
+                    }
+                }
+            });
+
+            // Make it big
+            fitCameraToObject(camera, model, 2.5); // Adjust offset to make it look "Bigger"
+
+            // Set initial reasonable values
+            const size = box.getSize(new THREE.Vector3());
+            // Default position slightly to the side?
+            document.getElementById('pos-z').value = size.z / 2; // Roughly side
+            document.getElementById('scale').value = size.y * 0.5; // Half height default
+            updateUIValues();
+
+        }, undefined, (error) => {
+            console.error(error);
+            document.getElementById('loading').innerText = "Error loading ASSET.gltf";
+        });
+
+        // --- Decal Logic ---
+        function applyDecal() {
+            if (!mesh || !uploadedTexture) return;
+            if (decalMesh) {
+                scene.remove(decalMesh);
+                decalMesh.geometry.dispose();
+            }
+
+            const x = parseFloat(document.getElementById('pos-x').value);
+            const y = parseFloat(document.getElementById('pos-y').value);
+            const z = parseFloat(document.getElementById('pos-z').value);
+            const s = parseFloat(document.getElementById('scale').value);
+            const r = parseFloat(document.getElementById('rotation').value);
+
+            const position = new THREE.Vector3(x, y, z);
+            // Limit Z-depth of decal box to prevent projecting through to other side
+            // x,y are planar dimensions, z is depth of projection
+            const decalSize = new THREE.Vector3(s, s, 0.5);
+
+            const projector = new THREE.Object3D();
+            projector.position.copy(position);
+            // Rotate 90 deg to face side if needed, but user controls rotation
+            projector.rotation.set(0, THREE.MathUtils.degToRad(r), 0);
+            projector.updateMatrixWorld();
+
+            const geometry = new DecalGeometry(mesh, position, projector.rotation, decalSize);
+
+            // Material setup
+            if (!decalMaterial) {
+                decalMaterial = new THREE.MeshPhongMaterial({
+                    map: uploadedTexture,
+                    transparent: true,
+                    depthTest: true,
+                    depthWrite: false,
+                    polygonOffset: true,
+                    polygonOffsetFactor: -4,
+                    shininess: 30,
+                    specular: 0x444444,
+                });
+            } else {
+                decalMaterial.map = uploadedTexture;
+            }
+
+            decalMesh = new THREE.Mesh(geometry, decalMaterial);
+            scene.add(decalMesh);
+        }
+
+        // --- Interaction ---
+        const fileInput = document.getElementById('file-input');
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = new Image();
+                    img.onload = function () {
+                        uploadedTexture = new THREE.Texture(img);
+                        uploadedTexture.needsUpdate = true;
+                        uploadedTexture.colorSpace = THREE.SRGBColorSpace;
+                        applyDecal(); // Live update immediately
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Live Update on Slide
+        const inputs = ['pos-x', 'pos-y', 'pos-z', 'scale', 'rotation'];
+        inputs.forEach(id => {
+            const el = document.getElementById(id);
+            el.addEventListener('input', () => {
+                updateUIValues();
+                applyDecal(); // Live update
+            });
+        });
+
+        function updateUIValues() {
+            inputs.forEach(id => {
+                document.getElementById('val-' + id.split('-')[1]).innerText = document.getElementById(id).value;
+            });
+        }
+
+        // Animation
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+
+</html>

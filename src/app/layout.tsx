@@ -15,6 +15,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "CustomizeLK | Premium Footwear Customization",
   description: "Create your own custom footwear design with CustomizeLK. Sri Lanka's premium customization studio.",
+  icons: {
+    icon: "/pre logo.png",
+  },
 };
 
 export default function RootLayout({

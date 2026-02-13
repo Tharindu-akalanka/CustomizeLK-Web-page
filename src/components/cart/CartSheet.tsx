@@ -11,7 +11,7 @@ import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 
 export default function CartSheet() {
-    const { items, removeItem, count, clearCart } = useCartStore();
+    const { items, removeItem, count, clearCart, updateItemSize } = useCartStore();
     const [mounted, setMounted] = useState(false);
     const [name, setName] = useState("");
     const [address, setAddress] = useState("");
@@ -99,9 +99,20 @@ ${orderSummary}
                                             </div>
                                             <div className="flex-1">
                                                 <h4 className="font-medium text-sm line-clamp-1">{item.title}</h4>
-                                                <p className="text-xs text-muted-foreground mt-1">
-                                                    Size: {item.size}
-                                                </p>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <span className="text-xs text-muted-foreground">Size:</span>
+                                                    <select
+                                                        value={item.size}
+                                                        onChange={(e) => updateItemSize(item.id, item.size, e.target.value)}
+                                                        className="h-6 text-xs border rounded bg-background px-1"
+                                                    >
+                                                        {["US 6", "US 7", "US 8", "US 9", "US 10", "US 11", "US 12"].map((size) => (
+                                                            <option key={size} value={size}>
+                                                                {size}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </div>
                                                 <div className="flex items-center justify-between mt-2">
                                                     <p className="text-sm font-bold">
                                                         Rs. {item.price.toLocaleString()} x {item.quantity}

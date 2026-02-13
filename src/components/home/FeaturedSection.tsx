@@ -1,13 +1,23 @@
-"use client";
+
 
 import { Button } from "@/components/ui/button";
 import ProductCard from "@/components/product/ProductCard";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { PRODUCTS } from "@/lib/data";
+import { getShopProducts } from "@/lib/shop-data";
 
 export default function FeaturedSection() {
-    const featuredProducts = PRODUCTS.slice(0, 4);
+    const products = getShopProducts();
+    // Filter for Best Sellers, or just take the first 4 if strictly following the "spread out" logic isn't enough
+    // Since we randomized the list, let's try to find ones with the badge.
+    const featuredProducts = products.filter(p => p.badge === "Best Seller").slice(0, 4);
+
+    // Fallback if not enough best sellers found (unlikely given our logic, but safe)
+    if (featuredProducts.length < 4) {
+        const remaining = 4 - featuredProducts.length;
+        const others = products.filter(p => p.badge !== "Best Seller").slice(0, remaining);
+        featuredProducts.push(...others);
+    }
 
     return (
         <section className="py-16 bg-background">

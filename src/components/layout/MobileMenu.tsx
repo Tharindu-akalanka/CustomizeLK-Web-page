@@ -30,7 +30,7 @@ const menuItems = [
             { label: "Sneakers", href: "/shop?category=women&type=sneakers" },
         ],
     },
-    { label: "Deals", href: "/shop?category=deals", highlight: true },
+
     { label: "Customize", href: "/customize" },
     { label: "Facilities", href: "/facilities" },
     { label: "Contact", href: "/contact" },
