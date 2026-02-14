@@ -1,0 +1,159 @@
+{
+  "accessors": [
+    {
+      "bufferView": 0,
+      "byteOffset": 0,
+      "componentType": 5125,
+      "count": 588012,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 0,
+      "componentType": 5126,
+      "count": 104216,
+      "max": [
+        0.04912172794342041,
+        0.09686400413513184,
+        0.1262654685974121
+      ],
+      "min": [
+        -0.03967403411865234,
+        0.0,
+        -0.1269957733154297
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 0,
+      "componentType": 5126,
+      "count": 104216,
+      "name": "UVChannel_1",
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "byteOffset": 0,
+      "componentType": 5126,
+      "count": 104216,
+      "type": "VEC3"
+    }
+  ],
+  "asset": {
+    "copyright": "2022 (c) Amazon.com, Inc.",
+    "generator": "encglb version 4cdd132955b7b448304109ecd55914fd0ff98db1 (post-processed with splitglb)",
+    "version": "2.0"
+  },
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 2352048,
+      "byteOffset": 0
+    },
+    {
+      "buffer": 0,
+      "byteLength": 1250592,
+      "byteOffset": 2352048
+    },
+    {
+      "buffer": 0,
+      "byteLength": 833728,
+      "byteOffset": 3602640
+    },
+    {
+      "buffer": 0,
+      "byteLength": 1250592,
+      "byteOffset": 4436368
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 5686960,
+      "uri": "ASSET.bin"
+    }
+  ],
+  "images": [
+    {
+      "uri": "normalTexture0.png"
+    },
+    {
+      "uri": "baseColorTexture1.png"
+    },
+    {
+      "uri": "metallicRoughnessTexture2.png"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "extensions": {},
+      "name": "Material #25",
+      "normalTexture": {
+        "index": 0
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "mesh_39",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 3,
+            "POSITION": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 0,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "children": [
+        1
+      ],
+      "name": "RootNode"
+    },
+    {
+      "mesh": 0,
+      "name": "ASSET"
+    }
+  ],
+  "samplers": [
+    {}
+  ],
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ]
+}

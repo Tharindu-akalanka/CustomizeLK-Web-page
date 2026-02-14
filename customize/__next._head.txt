@@ -1,0 +1,6 @@
+1:"$Sreact.fragment"
+2:I[57756,["/CustomizeLK-Web-page/_next/static/chunks/5ef7f080df846356.js","/CustomizeLK-Web-page/_next/static/chunks/4f66440b58952219.js"],"ViewportBoundary"]
+3:I[57756,["/CustomizeLK-Web-page/_next/static/chunks/5ef7f080df846356.js","/CustomizeLK-Web-page/_next/static/chunks/4f66440b58952219.js"],"MetadataBoundary"]
+4:"$Sreact.suspense"
+5:I[43187,["/CustomizeLK-Web-page/_next/static/chunks/5ef7f080df846356.js","/CustomizeLK-Web-page/_next/static/chunks/4f66440b58952219.js"],"IconMark"]
+0:{"buildId":"a2SGnwXupl369JEEaXkX6","rsc":["$","$1","h",{"children":[null,["$","$L2",null,{"children":[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]}],["$","div",null,{"hidden":true,"children":["$","$L3",null,{"children":["$","$4",null,{"name":"Next.Metadata","children":[["$","title","0",{"children":"CustomizeLK | Premium Footwear Customization"}],["$","meta","1",{"name":"description","content":"Create your own custom footwear design with CustomizeLK. Sri Lanka's premium customization studio."}],["$","link","2",{"rel":"icon","href":"/pre logo.png"}],["$","$L5","3",{}]]}]}]}],["$","meta",null,{"name":"next-size-adjust","content":""}]]}],"loading":null,"isPartial":false}
