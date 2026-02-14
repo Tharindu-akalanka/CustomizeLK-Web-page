@@ -11,6 +11,7 @@ export interface Product {
     type: string;
     gender: string;
     sizes: string[];
+    description?: string;
 }
 
 const NAME_MAPPING: Record<string, string> = {
@@ -82,118 +83,127 @@ const PRICE_LIST = [
 ];
 
 export function getShopProducts(): Product[] {
-    const artsDir = path.join(process.cwd(), 'public', 'images', 'arts');
-    const products: Product[] = [];
+    try {
+        const artsDir = path.join(process.cwd(), 'public', 'images', 'arts');
+        const products: Product[] = [];
 
-    // Categories map to folder names
-    // We can iterate through the subdirectories in 'arts'
-    if (!fs.existsSync(artsDir)) {
-        console.warn('Arts directory not found:', artsDir);
-        return [];
-    }
+        // Categories map to folder names
+        // We can iterate through the subdirectories in 'arts'
+        if (!fs.existsSync(artsDir)) {
+            console.warn('Arts directory not found:', artsDir);
+            return [];
+        }
 
-    const categories = fs.readdirSync(artsDir, { withFileTypes: true })
-        .filter(dirent => dirent.isDirectory())
-        .map(dirent => dirent.name)
-        .sort(); // Ensure alphabetical order for consistency
-
-    let globalIdRequest = 1;
-    let priceIndex = 0;
-
-    categories.forEach(category => {
-        const categoryDir = path.join(artsDir, category);
-        const files = fs.readdirSync(categoryDir)
-            .filter(file => /\.(jpg|jpeg|png|webp)$/i.test(file))
+        const categories = fs.readdirSync(artsDir, { withFileTypes: true })
+            .filter(dirent => dirent.isDirectory())
+            .map(dirent => dirent.name)
             .sort(); // Ensure alphabetical order for consistency
 
-        files.forEach(file => {
-            // Check if this item should be skipped (removed)
-            // Use designated price from list
-            const designatedPrice = (priceIndex < PRICE_LIST.length) ? PRICE_LIST[priceIndex] : 25000;
-            priceIndex++;
+        let globalIdRequest = 1;
+        let priceIndex = 0;
 
-            if (designatedPrice === -1) {
-                return; // Skip this product
-            }
+        categories.forEach(category => {
+            const categoryDir = path.join(artsDir, category);
+            // Verify categoryDir is actually a directory before reading
+            if (!fs.statSync(categoryDir).isDirectory()) return;
 
-            // Generate a readable title from filename
-            // e.g. "my-image.jpg" -> "My Image"
-            const nameWithoutExt = file.replace(/\.[^/.]+$/, "");
+            const files = fs.readdirSync(categoryDir)
+                .filter(file => /\.(jpg|jpeg|png|webp)$/i.test(file))
+                .sort(); // Ensure alphabetical order for consistency
 
-            // Try to find a match in NAME_MAPPING
-            // We strip non-alphanumeric chars to make matching more robust (handling typos/truncation)
-            // The mapping keys seem to be mostly 32-char hashes, but might be slightly off.
-            // Let's try exact match on the key lowercased first, or partial match.
+            files.forEach(file => {
+                // Check if this item should be skipped (removed)
+                // Use designated price from list
+                const designatedPrice = (priceIndex < PRICE_LIST.length) ? PRICE_LIST[priceIndex] : 25000;
+                priceIndex++;
 
-            let title = nameWithoutExt
-                .replace(/[-_]/g, ' ')
-                .replace(/\b\w/g, c => c.toUpperCase()); // Default title
-
-            const fileHash = nameWithoutExt.toLowerCase();
-
-            // Check keys
-            for (const [key, val] of Object.entries(NAME_MAPPING)) {
-                // Determine match - user keys might be slightly different than actual filenames
-                // Simple strategy: check if filename starts with the key, or key matches loosely
-                // Given the discrepancy in the user provided list (e.g. slight char diffs), 
-                // we'll try to match the first 10-15 chars which are likely stable?
-                // Or just normalized comparison.
-
-                const normalizedKey = key.toLowerCase();
-                // Check if the filename basically *is* this key (allowing for some typo tolerance or length diff)
-                // If the key is contained in the filename or vice versa
-                if (fileHash.includes(normalizedKey) || normalizedKey.includes(fileHash)) {
-                    title = val;
-                    break;
+                if (designatedPrice === -1) {
+                    return; // Skip this product
                 }
 
-                // Fallback: simple Levenshtein distance or just diff check? 
-                // Let's rely on overlap for now. The hashes are long enough that accidental overlap is rare.
-                // If > 80% of the characters match, it's probably the one.
-            }
+                // Generate a readable title from filename
+                // e.g. "my-image.jpg" -> "My Image"
+                const nameWithoutExt = file.replace(/\.[^/.]+$/, "");
 
-            // Special handling for duplicate filenames across categories if necessary
-            if (category.toLowerCase() === 'cartoon' && fileHash.includes('0d8397')) {
-                title = "Light Fury – Sky Spirit Edition";
-            } else if (category.toLowerCase() === 'aime theme' && fileHash.includes('0d8397')) {
-                title = "Yuta – Shadow Surge Edition";
-            }
+                // Try to find a match in NAME_MAPPING
+                // We strip non-alphanumeric chars to make matching more robust (handling typos/truncation)
+                // The mapping keys seem to be mostly 32-char hashes, but might be slightly off.
+                // Let's try exact match on the key lowercased first, or partial match.
 
-            // Assign price from list
-            const price = designatedPrice;
+                let title = nameWithoutExt
+                    .replace(/[-_]/g, ' ')
+                    .replace(/\b\w/g, c => c.toUpperCase()); // Default title
 
-            // Using a simple hash for consistency across reloads
-            const hash = nameWithoutExt.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+                const fileHash = nameWithoutExt.toLowerCase();
 
-            // Assign random gender/type for filtering demo purposes
-            const types = ['sneakers', 'casual', 'flats'];
-            const genders = ['men', 'women', 'unisex'];
-            const type = types[hash % types.length];
-            const gender = genders[hash % genders.length];
+                // Check keys
+                for (const [key, val] of Object.entries(NAME_MAPPING)) {
+                    // Determine match - user keys might be slightly different than actual filenames
+                    // Simple strategy: check if filename starts with the key, or key matches loosely
+                    // Given the discrepancy in the user provided list (e.g. slight char diffs), 
+                    // we'll try to match the first 10-15 chars which are likely stable?
+                    // Or just normalized comparison.
 
-            // Normalize category name for URL param matching (if needed) or keep strictly as folder name
-            // The folder names are "abstract", "cartoon", etc. which is fine.
+                    const normalizedKey = key.toLowerCase();
+                    // Check if the filename basically *is* this key (allowing for some typo tolerance or length diff)
+                    // If the key is contained in the filename or vice versa
+                    if (fileHash.includes(normalizedKey) || normalizedKey.includes(fileHash)) {
+                        title = val;
+                        break;
+                    }
 
-            products.push({
-                id: `art-${globalIdRequest++}`,
-                title: title,
-                price: price,
-                image: `/images/arts/${category}/${file}`,
-                category: category.toLowerCase(), // Use folder name as category
-                type: type,
-                gender: gender,
-                badge: (hash % 5 === 0) ? "New" : (hash % 7 === 0) ? "Best Seller" : undefined,
-                sizes: ["US 6", "US 7", "US 8", "US 9", "US 10", "US 11", "US 12"]
+                    // Fallback: simple Levenshtein distance or just diff check? 
+                    // Let's rely on overlap for now. The hashes are long enough that accidental overlap is rare.
+                    // If > 80% of the characters match, it's probably the one.
+                }
+
+                // Special handling for duplicate filenames across categories if necessary
+                if (category.toLowerCase() === 'cartoon' && fileHash.includes('0d8397')) {
+                    title = "Light Fury – Sky Spirit Edition";
+                } else if (category.toLowerCase() === 'aime theme' && fileHash.includes('0d8397')) {
+                    title = "Yuta – Shadow Surge Edition";
+                }
+
+                // Assign price from list
+                const price = designatedPrice;
+
+                // Using a simple hash for consistency across reloads
+                const hash = nameWithoutExt.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+
+                // Assign random gender/type for filtering demo purposes
+                const types = ['sneakers', 'casual', 'flats'];
+                const genders = ['men', 'women', 'unisex'];
+                const type = types[hash % types.length];
+                const gender = genders[hash % genders.length];
+
+                // Normalize category name for URL param matching (if needed) or keep strictly as folder name
+                // The folder names are "abstract", "cartoon", etc. which is fine.
+
+                products.push({
+                    id: `art-${globalIdRequest++}`,
+                    title: title,
+                    price: price,
+                    image: `/images/arts/${category}/${file}`,
+                    category: category.toLowerCase(), // Use folder name as category
+                    type: type,
+                    gender: gender,
+                    badge: (hash % 5 === 0) ? "New" : (hash % 7 === 0) ? "Best Seller" : undefined,
+                    sizes: ["US 6", "US 7", "US 8", "US 9", "US 10", "US 11", "US 12"],
+                    description: "Custom handcrafted footwear by CustomizeLK."
+                });
             });
         });
-    });
 
-    // Shuffle the products to randomize the display order
-    // Fisher-Yates shuffle
-    for (let i = products.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [products[i], products[j]] = [products[j], products[i]];
+        // Shuffle the products to randomize the display order
+        // Fisher-Yates shuffle
+        for (let i = products.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [products[i], products[j]] = [products[j], products[i]];
+        }
+
+        return products;
+    } catch (error) {
+        console.error("Error generating shop products:", error);
+        return [];
     }
-
-    return products;
 }

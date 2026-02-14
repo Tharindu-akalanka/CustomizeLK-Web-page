@@ -9,7 +9,14 @@ import { useState } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 
-const menuItems = [
+interface MenuItem {
+    label: string;
+    href: string;
+    children?: { label: string; href: string }[];
+    highlight?: boolean;
+}
+
+const menuItems: MenuItem[] = [
     { label: "Home", href: "/" },
     { label: "Shop", href: "/shop" },
     {
